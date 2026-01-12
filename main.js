@@ -30,7 +30,7 @@ const pointLight = new THREE.PointLight(0x8800ff, 3, 20);
 pointLight.position.set(0, 0, 0);
 scene.add(pointLight);
 
-
+const sphere = new THREE.SphereGeometry(1, 23, 3)
 
 // 6. Animation loop
 function animate() {
