@@ -1,6 +1,6 @@
-# Silent Orbit
+# Monolitharium
 
-**Silent Orbit** is a Three.js simulation of a monolith surrounded by orbiting planets.  
+**Monolitharium** is a Three.js simulation of a monolith surrounded by orbiting planets.  
 Each planet has its own orbit, speed, and subtle “flicker,” giving the system a natural, dynamic, and slightly mysterious feel.
 
 ---
@@ -26,14 +26,14 @@ Each planet has its own orbit, speed, and subtle “flicker,” giving the syste
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/silent-orbit.git
+git clone https://github.com/yourusername/monolitharium.git
 ```
 ### Open index.html in your browser.
 (No server required; works locally.)
 
 ## File Structure
 ```t
-monolith/
+monolitharium/
 ├─ index.html      # Main HTML file
 ├─ app.js          # Three.js setup and animation logic
 └─ README.md       # Project overview
