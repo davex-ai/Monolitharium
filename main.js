@@ -46,28 +46,18 @@ planets.forEach(p => {
     planetMeshes.push(mesh);
 })
 
-
 function animate() {
     requestAnimationFrame(animate);
-
-
     monolith.rotation.y += 0.001
-
-
     const time = performance.now() * 0.001;
-    const radius = 5;
-
-
 
     planetMeshes.forEach((mesh, i) => {
     const p = planets[i];
     const angle = time * p.speed;
 
-
     mesh.position.x = Math.cos(angle) * p.distance;
     mesh.position.z = Math.sin(angle) * p.distance;
     mesh.position.y = Math.sin(angle * 0.3) * 0.3;
-
 
     const flickerFactor = 1 + Math.sin(time * 5 + i) * p.flicker;
     mesh.material.color.r = mesh.userData.baseColor.r * flickerFactor;
