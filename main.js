@@ -14,8 +14,8 @@ document.body.appendChild(renderer.domElement);
 
 // Monolith
 const geometry = new THREE.BoxGeometry(1, 6, 1);
-const material = new THREE.MeshStandardMaterial({ color: 0x050505 });
-const monolith = new THREE.Mesh(geometry, material);
+const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+const monolith = new THREE.Mesh(geometry, material);//this is the pole i was talikng about earlier when i said there was a long rectangle...
 scene.add(monolith);
 camera.lookAt(monolith.position);  // make sure it's looking at the center
 
@@ -27,9 +27,24 @@ scene.add(pointLight);
 
 // First Planet
 const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x00ffcc });
+const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x00ffcc, emissive: 0x0000ff, emissiveIntensity: 2,  metalness: 0.5 });
 const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphere);
+
+const planets = [
+    { radius: 0.7, distance: 5, speed: 0.5, color: 0x00ffcc },
+    { radius: 0.5, distance: 7, speed: 0.2, color: 0xffaa00 },
+    { radius: 0.4, distance: 9, speed: -0.3, color: 0x8833ff },
+];
+
+const planetMeshes = []
+planets.forEach(p => {
+    const geo = new THREE.SphereGeometry(p.radius, 32, 32)
+    const mat = new THREE.MeshStandardMaterial({ color: p.color, metalness: 0.5, roughness: 0.5 });
+    const mesh = new THREE.Mesh(geo, mat);
+    scene.add(mesh);
+    planetMeshes.push(mesh);
+})
 
 // Animation loop
 function animate() {
