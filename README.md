@@ -26,7 +26,7 @@ Each planet has its own orbit, speed, and subtle “flicker,” giving the syste
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/monolitharium.git
+git clone https://github.com/davex-ai/monolitharium.git
 ```
 ### Open index.html in your browser.
 (No server required; works locally.)
