@@ -35,11 +35,8 @@ git clone https://github.com/davex-ai/monolitharium.git
 ```t
 monolitharium/
 ├─ index.html      # Main HTML file
+├─ app.js          # Three.js setup and animation logic
 └─ README.md       # Project overview
-└─ old/       # Old Solar System
-  ├─ main.js          # Three.js setup and animation logic
-  ├─ index.html          # Main HTML file
-  └─ README.md       # Project overview
 ```
 Customization
 
@@ -59,7 +56,7 @@ Adjust monolith geometry or color for personal style.
 
 ## Inspiration
 - Inspired by a personal vision of cosmic systems, orbiting around a silent, indifferent monolith.
-- Inspired By [Truth](https://github.com/gazijarin/Truth) By [Gazi](https://github.com/gazijarin).
+- Inspired By [Truth](https://github.com/gazijarin/Truth) By @gazijarin
 The project was a personal exploration of 3D motion, lighting, and aesthetic coding in Three.js.
 
 ## Demo

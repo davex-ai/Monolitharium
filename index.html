@@ -1,85 +1,387 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="A three.js simulation of the planet system revolving around a monolith, catered to my personal aesthetics.">
   <title>Monolitharium</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+      width: 100%; height: 100%;
       background: #000;
+      overflow: hidden;
     }
-    canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-    }
+    canvas { display: block; width: 100vw !important; height: 100vh !important; }
 
-    #controls {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(10, 0, 20, 0.75);
-      border: 1px solid rgba(136, 0, 255, 0.35);
-      border-radius: 40px;
-      padding: 10px 22px;
-      backdrop-filter: blur(8px);
-      user-select: none;
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px;
+      background: linear-gradient(to bottom, rgba(0,0,0,.75), transparent);
+      font-family: 'Courier New', monospace;
+      color: rgba(255,255,255,.85);
+      font-size: 12px;
+      letter-spacing: .08em;
+      pointer-events: none;
       z-index: 10;
     }
-    #controls label {
-      color: rgba(180, 130, 255, 0.9);
+    #hud .title { font-size: 15px; font-weight: bold; letter-spacing: .2em; color: #aee; }
+    #hud .hint  { opacity: .55; font-size: 10px; }
+
+    #panel {
+      position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+      background: rgba(5,10,20,.82);
+      border: 1px solid rgba(100,200,255,.18);
+      border-right: none;
+      border-radius: 10px 0 0 10px;
+      padding: 18px 14px;
+      width: 200px;
+      color: #cce;
       font-family: 'Courier New', monospace;
-      font-size: 12px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      white-space: nowrap;
+      font-size: 11px;
+      z-index: 10;
+      transition: transform .35s ease;
     }
-    #speedSlider {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 140px;
-      height: 3px;
-      background: linear-gradient(to right, #8800ff, #00ffcc);
-      border-radius: 2px;
-      outline: none;
-      cursor: pointer;
+    #panel.hidden { transform: translateY(-50%) translateX(200px); }
+    #panel h3 { font-size: 12px; color: #7ef; letter-spacing: .15em; margin-bottom: 14px; text-transform: uppercase; }
+
+    .ctrl-row { margin-bottom: 12px; }
+    .ctrl-label { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .ctrl-label span:last-child { color: #7ef; }
+    input[type=range] { width: 100%; height: 3px; accent-color: #4cf; cursor: pointer; }
+
+    #views {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px;
+      z-index: 10;
     }
-    #speedSlider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 6px #8800ff;
-      cursor: pointer;
-    }
-    #speedVal {
-      color: #00ffcc;
+    .vbtn {
+      background: rgba(5,15,30,.8);
+      border: 1px solid rgba(80,180,255,.3);
+      color: rgba(150,220,255,.85);
       font-family: 'Courier New', monospace;
-      font-size: 12px;
-      min-width: 28px;
-      text-align: right;
+      font-size: 11px;
+      letter-spacing: .1em;
+      padding: 7px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .vbtn:hover, .vbtn.active {
+      background: rgba(20,80,160,.7);
+      border-color: rgba(80,180,255,.8);
+      color: #fff;
+    }
+
+    #togglePanel {
+      position: fixed; right: 200px; top: 50%; transform: translateY(-50%);
+      background: rgba(10,20,40,.8);
+      border: 1px solid rgba(80,180,255,.25);
+      border-right: none;
+      color: #7ef;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      width: 24px; height: 50px;
+      border-radius: 6px 0 0 6px;
+      cursor: pointer;
+      z-index: 11;
+      transition: right .35s ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #togglePanel.collapsed { right: 0; }
+
+    #tooltip {
+      position: fixed; pointer-events: none;
+      background: rgba(5,10,25,.9);
+      border: 1px solid rgba(80,200,255,.3);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #cef;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.6;
+      z-index: 20;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div id="controls">
-    <label>Orbit Speed</label>
-    <input type="range" id="speedSlider" min="0" max="5" step="0.05" value="1">
-    <span id="speedVal">1.0x</span>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
-  <script type="module" src="main.js"></script>
+<div id="hud">
+  <span class="title">MONOLITHARIUM</span>
+  <span class="hint">DRAG to orbit &nbsp;·&nbsp; SCROLL to zoom &nbsp;·&nbsp; HOVER planets</span>
+</div>
+
+<div id="panel">
+  <h3>Controls</h3>
+  <div class="ctrl-row">
+    <div class="ctrl-label"><span>Global Speed</span><span id="valSpeed">1.0×</span></div>
+    <input type="range" id="slSpeed" min="0" max="5" step="0.1" value="1">
+  </div>
+  <div id="planetSliders"></div>
+</div>
+
+<button id="togglePanel">&#x203A;</button>
+
+<div id="views">
+  <button class="vbtn active" data-view="orbit">Orbit View</button>
+  <button class="vbtn" data-view="top">Top-Down</button>
+  <button class="vbtn" data-view="side">Side View</button>
+  <button class="vbtn" data-view="close">Close-Up</button>
+</div>
+
+<div id="tooltip"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+<script>
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 2000);
+camera.position.set(0, 8, 22);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// Stars
+const starGeo = new THREE.BufferGeometry();
+const sv = [];
+for (let i = 0; i < 8000; i++)
+  sv.push((Math.random()-.5)*1800,(Math.random()-.5)*1800,(Math.random()-.5)*1800);
+starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sv, 3));
+scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color:0xffffff, size:0.35, sizeAttenuation:true })));
+
+// Lighting — ambient was near-black (0x111111), now properly lit
+scene.add(new THREE.AmbientLight(0x223344, 1.2));
+const sunLight = new THREE.PointLight(0xffe8c0, 6, 80);
+sunLight.position.set(0,0,0);
+sunLight.castShadow = true;
+scene.add(sunLight);
+// scene.add(Object.assign(new THREE.DirectionalLight(0x334466, 0.6), {position: new THREE.Vector3(-20,30,-20)}));
+
+// Procedural textures
+function noiseCanvas(w, h, fn) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(w, h);
+  for (let y=0;y<h;y++) for(let x=0;x<w;x++) {
+    const i=(y*w+x)*4, [r,g,b]=fn(x/w,y/h);
+    img.data[i]=r; img.data[i+1]=g; img.data[i+2]=b; img.data[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  return new THREE.CanvasTexture(c);
+}
+function sn(x,y,f){ return (Math.sin(x*f*6.28+y*f*4.13)*.5+Math.sin(x*f*3.17-y*f*7.53)*.5); }
+
+const earthTex = noiseCanvas(512,256,(u,v)=>{
+  const lat=(v-.5)*Math.PI, n1=sn(u,v,6)*.5+.5, n2=sn(u+.3,v+.1,12)*.5+.5, n3=sn(u-.2,v+.4,3)*.5+.5;
+  const land=n1*n2>0.28, polar=Math.abs(lat)>1.1;
+  if(polar) return [220,235,255];
+  if(land){ const g=Math.floor(60+n3*90); return [40+n3*40,g,30+n3*20]; }
+  const d=Math.floor(30+n2*40); return [d,d+60+Math.floor(n1*50),d+120+Math.floor(n2*60)];
+});
+
+const lavaTex = noiseCanvas(512,256,(u,v)=>{
+  const n=sn(u,v,8)*.5+.5, n2=sn(u*2,v*2,4)*.5+.5, crack=sn(u+.7,v+.3,20)*.5+.5;
+  return [Math.floor(140+n*100),Math.floor(30+n2*50),crack>0.75?Math.floor(80+n*100):5];
+});
+
+const iceTex = noiseCanvas(512,256,(u,v)=>{
+  const band=sn(0,v,4)*.5+.5, n=sn(u+band*.3,v,10)*.5+.5;
+  return [Math.floor(140+band*80),Math.floor(170+n*60),Math.floor(200+n*55)];
+});
+
+const alienTex = noiseCanvas(512,256,(u,v)=>{
+  const n=sn(u,v,5)*.5+.5, n2=sn(u+.5,v+.5,11)*.5+.5;
+  return [Math.floor(80+n*120),Math.floor(10+n2*40),Math.floor(150+n*105)];
+});
+
+const sunTex = noiseCanvas(512,256,(u,v)=>{
+  const n=sn(u,v,4)*.5+.5, n2=sn(u*3,v*3,8)*.5+.5;
+  return [255,Math.floor(140+n*80),Math.floor(20+n2*60)];
+});
+
+// Central planet (replaces the invisible green box)
+const centralMat = new THREE.MeshStandardMaterial({
+  map: sunTex, emissiveMap: sunTex,
+  emissive: new THREE.Color(1.0,0.5,0.05), emissiveIntensity: 1.4,
+  roughness: 0.6, metalness: 0.1
+});
+const centralPlanet = new THREE.Mesh(new THREE.SphereGeometry(2.8,64,64), centralMat);
+scene.add(centralPlanet);
+
+// Corona glow
+const glowC = document.createElement('canvas'); glowC.width = glowC.height = 256;
+const gc = glowC.getContext('2d');
+const gr = gc.createRadialGradient(128,128,10,128,128,128);
+gr.addColorStop(0,'rgba(255,200,80,0.6)'); gr.addColorStop(0.4,'rgba(255,120,20,0.15)'); gr.addColorStop(1,'rgba(0,0,0,0)');
+gc.fillStyle=gr; gc.fillRect(0,0,256,256);
+const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(glowC), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending }));
+glow.scale.set(14,14,1);
+scene.add(glow);
+
+// Planets
+const planetDefs = [
+  { name:'Veridis',  radius:0.72, distance:6.5,  speed:1.4,  tex:earthTex, tilt:0.15, info:'Terran · Oceanic',   atmColor:0x3388ff },
+  { name:'Kaelthar', radius:0.55, distance:9.2,  speed:0.9,  tex:iceTex,   tilt:0.05, info:'Ice Giant · Banded', atmColor:0xaaccff },
+  { name:'Molvrak',  radius:0.88, distance:12.0, speed:-0.6, tex:lavaTex,  tilt:0.3,  info:'Volcanic · Lava seas',atmColor:0xff4400 },
+  { name:'Xyphoris', radius:0.62, distance:15.5, speed:0.4,  tex:alienTex, tilt:0.2,  info:'Alien · Nebula skin',atmColor:0x8833ff },
+];
+
+const planetMeshes = [];
+planetDefs.forEach((p,i) => {
+  // Orbit ring
+  const pts=[];
+  for(let a=0;a<=128;a++){ const ang=(a/128)*Math.PI*2; pts.push(Math.cos(ang)*p.distance,0,Math.sin(ang)*p.distance); }
+  const og=new THREE.BufferGeometry(); og.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
+  scene.add(new THREE.Line(og,new THREE.LineBasicMaterial({color:0x334466,transparent:true,opacity:0.35})));
+
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(p.radius,64,64),
+    new THREE.MeshStandardMaterial({ map:p.tex, roughness:0.75, metalness:0.05 })
+  );
+  mesh.castShadow=true; mesh.receiveShadow=true;
+  mesh.userData={...p,speedMult:1.0};
+  scene.add(mesh);
+  planetMeshes.push(mesh);
+
+  // Atmosphere
+  mesh.add(new THREE.Mesh(
+    new THREE.SphereGeometry(p.radius*1.07,32,32),
+    new THREE.MeshStandardMaterial({color:p.atmColor,transparent:true,opacity:0.10,side:THREE.FrontSide,depthWrite:false})
+  ));
+});
+
+// Camera orbit state
+let isDragging=false, lastX=0, lastY=0;
+let camTheta=-0.4, camPhi=1.1, camDist=22;
+let tgtTheta=camTheta, tgtPhi=camPhi, tgtDist=camDist;
+
+renderer.domElement.addEventListener('mousedown', e=>{isDragging=true;lastX=e.clientX;lastY=e.clientY;});
+window.addEventListener('mouseup',()=>isDragging=false);
+window.addEventListener('mousemove',e=>{
+  if(!isDragging)return;
+  tgtTheta-=(e.clientX-lastX)*0.005;
+  tgtPhi=Math.max(0.1,Math.min(Math.PI-0.1,tgtPhi-(e.clientY-lastY)*0.005));
+  lastX=e.clientX;lastY=e.clientY;
+});
+renderer.domElement.addEventListener('wheel',e=>{tgtDist=Math.max(5,Math.min(60,tgtDist+e.deltaY*0.03));},{passive:true});
+
+// Touch
+let lastTouch=null;
+renderer.domElement.addEventListener('touchstart',e=>{lastTouch=e.touches[0];});
+renderer.domElement.addEventListener('touchmove',e=>{
+  if(!lastTouch)return;
+  const t=e.touches[0];
+  tgtTheta-=(t.clientX-lastTouch.clientX)*0.005;
+  tgtPhi=Math.max(0.1,Math.min(Math.PI-0.1,tgtPhi-(t.clientY-lastTouch.clientY)*0.005));
+  lastTouch=t;
+},{passive:true});
+
+// View presets
+const VIEWS={
+  orbit:{theta:-0.4,phi:1.1,dist:22},
+  top:  {theta:0,  phi:0.12,dist:30},
+  side: {theta:Math.PI/2,phi:Math.PI/2,dist:25},
+  close:{theta:-0.4,phi:1.1,dist:9},
+};
+document.querySelectorAll('.vbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const v=VIEWS[btn.dataset.view];
+    tgtTheta=v.theta;tgtPhi=v.phi;tgtDist=v.dist;
+  });
+});
+
+// Speed sliders
+let globalSpeed=1.0;
+document.getElementById('slSpeed').addEventListener('input',function(){
+  globalSpeed=parseFloat(this.value);
+  document.getElementById('valSpeed').textContent=globalSpeed.toFixed(1)+'×';
+});
+
+const psDiv=document.getElementById('planetSliders');
+planetDefs.forEach((p,i)=>{
+  const row=document.createElement('div'); row.className='ctrl-row';
+  row.innerHTML=`<div class="ctrl-label"><span>${p.name}</span><span id="pval${i}">1.0×</span></div><input type="range" id="psl${i}" min="0" max="4" step="0.1" value="1">`;
+  psDiv.appendChild(row);
+  document.getElementById(`psl${i}`).addEventListener('input',function(){
+    planetMeshes[i].userData.speedMult=parseFloat(this.value);
+    document.getElementById(`pval${i}`).textContent=parseFloat(this.value).toFixed(1)+'×';
+  });
+});
+
+// Panel toggle
+const panel=document.getElementById('panel');
+const toggleBtn=document.getElementById('togglePanel');
+let panelOpen=true;
+toggleBtn.addEventListener('click',()=>{
+  panelOpen=!panelOpen;
+  panel.classList.toggle('hidden',!panelOpen);
+  toggleBtn.innerHTML=panelOpen?'&#x203A;':'&#x2039;';
+  toggleBtn.classList.toggle('collapsed',!panelOpen);
+});
+
+// Tooltip
+const raycaster=new THREE.Raycaster();
+const mouse=new THREE.Vector2();
+const tooltip=document.getElementById('tooltip');
+window.addEventListener('mousemove',e=>{
+  mouse.x=(e.clientX/innerWidth)*2-1;
+  mouse.y=-(e.clientY/innerHeight)*2+1;
+  raycaster.setFromCamera(mouse,camera);
+  const hits=raycaster.intersectObjects([centralPlanet,...planetMeshes]);
+  if(hits.length){
+    const obj=hits[0].object;
+    const ud=obj.userData;
+    const isCentral=obj===centralPlanet;
+    tooltip.style.display='block';
+    tooltip.style.left=(e.clientX+14)+'px';
+    tooltip.style.top=(e.clientY-10)+'px';
+    tooltip.innerHTML=isCentral
+      ?`<b style="color:#fc8">&#9733; SOLMARA</b><br>Class: Star-Planet<br>Radius: 2.8 AU<br>Temp: 5800K`
+      :`<b style="color:#7ef">${ud.name}</b><br>${ud.info}<br>Orbit: ${ud.distance} AU`;
+  } else { tooltip.style.display='none'; }
+});
+
+function animate(){
+  requestAnimationFrame(animate);
+  const t=performance.now()*0.001;
+
+  camTheta+=(tgtTheta-camTheta)*0.07;
+  camPhi  +=(tgtPhi  -camPhi  )*0.07;
+  camDist +=(tgtDist -camDist )*0.07;
+
+  camera.position.set(
+    camDist*Math.sin(camPhi)*Math.sin(camTheta),
+    camDist*Math.cos(camPhi),
+    camDist*Math.sin(camPhi)*Math.cos(camTheta)
+  );
+  camera.lookAt(0,0,0);
+
+  centralPlanet.rotation.y+=0.003;
+  sunLight.intensity=5.5+Math.sin(t*1.3)*0.5;
+
+  planetMeshes.forEach((mesh,i)=>{
+    const p=planetDefs[i];
+    const mult=mesh.userData.speedMult??1.0;
+    const angle=t*p.speed*globalSpeed*mult;
+    mesh.position.set(Math.cos(angle)*p.distance, Math.sin(angle*0.4)*(p.distance*0.04), Math.sin(angle)*p.distance);
+    mesh.rotation.y+=0.008*globalSpeed*mult;
+    mesh.rotation.x=p.tilt;
+  });
+
+  renderer.render(scene,camera);
+}
+animate();
+</script>
 </body>
 </html>
