@@ -56,7 +56,7 @@ Adjust monolith geometry or color for personal style.
 
 ## Inspiration
 - Inspired by a personal vision of cosmic systems, orbiting around a silent, indifferent monolith.
-- [Gazi](https://github.com/gazijarin)
+- Inspired By [Truth](https://github.com/gazijarin/Truth) By @gazijarin
 The project was a personal exploration of 3D motion, lighting, and aesthetic coding in Three.js.
 
 ## Demo
