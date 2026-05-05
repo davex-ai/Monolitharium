@@ -64,3 +64,5 @@ The project was a personal exploration of 3D motion, lighting, and aesthetic cod
 
 ## Demo
 ![alt text](image.png)
+
+### Author [Dave](https://github.com/davex-ai).
